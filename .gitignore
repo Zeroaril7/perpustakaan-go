@@ -1,0 +1,9 @@
+.idea/
+.vscode
+vendor
+__debug_bin.exe
+main
+.env
+coverages/index.html
+__debug_bin
+coverage-report.html
