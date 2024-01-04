@@ -20,7 +20,7 @@ func (r *bookRepository) Add(ctx context.Context, data models.Book) (result mode
 
 // Delete implements domain.BookRepository.
 func (r *bookRepository) Delete(ctx context.Context, register_id string) error {
-	return r.db.WithContext(ctx).Delete(&models.Book{}).Where("register_id = ?", register_id).Error
+	return r.db.WithContext(ctx).Where("register_id = ?", register_id).Delete(&models.Book{}).Error
 }
 
 // GetLast implements domain.BookRepository.
@@ -36,7 +36,7 @@ func (r *bookRepository) GetLast(ctx context.Context, genre string) (result mode
 
 // GetByRegisterID implements domain.BookRepository.
 func (r *bookRepository) GetByRegisterID(ctx context.Context, register_id string) (result models.Book, err error) {
-	err = r.db.WithContext(ctx).Find(&result).Where("register_id = ?", register_id).Error
+	err = r.db.WithContext(ctx).Where("register_id = ?", register_id).Find(&result).Error
 	return
 }
 

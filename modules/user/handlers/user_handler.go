@@ -44,7 +44,7 @@ func (h *userHandler) Add(c echo.Context) error {
 	data := new(models.UserAdd)
 
 	if err := c.Bind(data); err != nil {
-		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
+		return utils.ResponseError(httperror.BadRequest(httperror.BindErrorMessage), c)
 	}
 
 	if err := c.Validate(data); err != nil {
@@ -81,7 +81,11 @@ func (h *userHandler) Get(c echo.Context) error {
 	filter := new(models.UserFilter)
 
 	if err := c.Bind(filter); err != nil {
-		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
+		return utils.ResponseError(httperror.BadRequest(httperror.BindErrorMessage), c)
+	}
+
+	if !filter.DisablePagination {
+		filter.SetDefault()
 	}
 
 	result := <-h.userUsecase.Get(c.Request().Context(), *filter)
@@ -96,10 +100,6 @@ func (h *userHandler) Get(c echo.Context) error {
 // GetByUsername implements UserHandler.
 func (h *userHandler) GetByUsername(c echo.Context) error {
 	username := utils.ConvertString(c.Param("username"))
-
-	if err := c.Bind(username); err != nil {
-		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
-	}
 
 	result := <-h.userUsecase.GetByUsername(c.Request().Context(), username)
 
@@ -128,7 +128,7 @@ func (h *userHandler) Update(c echo.Context) error {
 
 	data := new(models.UserAdd)
 	if err := c.Bind(data); err != nil {
-		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
+		return utils.ResponseError(httperror.BadRequest(httperror.BindErrorMessage), c)
 	}
 
 	if err := c.Validate(data); err != nil {
