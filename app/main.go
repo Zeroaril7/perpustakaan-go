@@ -8,6 +8,9 @@ import (
 	"time"
 
 	"github.com/Zeroaril7/perpustakaan-go/config"
+	authDomain "github.com/Zeroaril7/perpustakaan-go/modules/auth/domain"
+	authHandler "github.com/Zeroaril7/perpustakaan-go/modules/auth/handlers"
+	authUsecase "github.com/Zeroaril7/perpustakaan-go/modules/auth/usecases"
 	bookDomain "github.com/Zeroaril7/perpustakaan-go/modules/book/domain"
 	bookHandler "github.com/Zeroaril7/perpustakaan-go/modules/book/handlers"
 	bookRepository "github.com/Zeroaril7/perpustakaan-go/modules/book/repositories"
@@ -31,6 +34,7 @@ type repositories struct {
 type usecase struct {
 	bookUsecase bookDomain.BookUsecase
 	userUsecase userDomain.UserUsecase
+	authUsecase authDomain.AuthUsecase
 }
 
 type packages struct {
@@ -48,6 +52,9 @@ func setPackages() {
 	// usecase
 	pkg.usecase.bookUsecase = bookUsecase.NewBookUsecase(pkg.repositories.bookRepository)
 	pkg.usecase.userUsecase = userUsecase.NewUserUsecase(pkg.repositories.userRepository)
+
+	// auth
+	pkg.usecase.authUsecase = authUsecase.NewAuthUsecase(pkg.repositories.userRepository)
 }
 
 func setHttp(e *echo.Echo) {
@@ -61,6 +68,9 @@ func setHttp(e *echo.Echo) {
 
 	// User
 	userHandler.NewUserHandler(e, pkg.usecase.userUsecase)
+
+	// Auth
+	authHandler.NewAuthHandler(e, pkg.usecase.authUsecase)
 
 }
 

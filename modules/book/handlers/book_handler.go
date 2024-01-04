@@ -7,6 +7,7 @@ import (
 	"github.com/Zeroaril7/perpustakaan-go/middlewares"
 	"github.com/Zeroaril7/perpustakaan-go/modules/book/domain"
 	"github.com/Zeroaril7/perpustakaan-go/modules/book/models"
+	"github.com/Zeroaril7/perpustakaan-go/pkg/constant"
 	"github.com/Zeroaril7/perpustakaan-go/pkg/httperror"
 	"github.com/Zeroaril7/perpustakaan-go/pkg/utils"
 	"github.com/labstack/echo/v4"
@@ -30,7 +31,7 @@ func NewBookHandler(e *echo.Echo, bookUsecase domain.BookUsecase) BookHandler {
 	}
 
 	group := e.Group("/book")
-	group.DELETE("/:register_id", handler.Delete, middlewares.VerifyBasicAuth(config.Config().BasicAuthUsername, config.Config().BasicAuthPassword))
+	group.DELETE("/:register_id", handler.Delete, middlewares.VerifyJWTRSA(config.Config().PublicKey), middlewares.EchoSetCredential())
 	group.GET("", handler.Get)
 	group.GET("/:register_id", handler.GetByRegisterID)
 	group.POST("", handler.Add, middlewares.VerifyBasicAuth(config.Config().BasicAuthUsername, config.Config().BasicAuthPassword))
@@ -42,7 +43,7 @@ func (h *bookHandler) Add(c echo.Context) error {
 	data := new(models.BookAdd)
 
 	if err := c.Bind(data); err != nil {
-		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
+		return utils.ResponseError(httperror.BadRequest(httperror.BindErrorMessage), c)
 	}
 
 	if err := c.Validate(data); err != nil {
@@ -70,6 +71,12 @@ func (h *bookHandler) Add(c echo.Context) error {
 func (h *bookHandler) Delete(c echo.Context) error {
 	registerId := utils.ConvertString(c.Param("register_id"))
 
+	role := c.Get("role").(string)
+
+	if role != constant.Admin && role != constant.SuperAdmin {
+		return utils.ResponseError(httperror.Unauthorized(httperror.UnauthorizedErrorMessage), c)
+	}
+
 	result := <-h.bookUsecase.Delete(c.Request().Context(), registerId)
 
 	if result.Error != nil {
@@ -83,7 +90,7 @@ func (h *bookHandler) Get(c echo.Context) error {
 	filter := new(models.BookFilter)
 
 	if err := c.Bind(filter); err != nil {
-		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
+		return utils.ResponseError(httperror.BadRequest(httperror.BindErrorMessage), c)
 	}
 
 	if !filter.DisablePagination {
@@ -130,7 +137,7 @@ func (h *bookHandler) Update(c echo.Context) error {
 	data := new(models.BookAdd)
 
 	if err := c.Bind(data); err != nil {
-		utils.ResponseError(httperror.BadRequest(err.Error()), c)
+		utils.ResponseError(httperror.BadRequest(httperror.BindErrorMessage), c)
 	}
 
 	if err := c.Validate(data); err != nil {

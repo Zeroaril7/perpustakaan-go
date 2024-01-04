@@ -16,6 +16,8 @@ type envConfig struct {
 	MySQLUsername     string
 	MySQLPassword     string
 	MySQLDBName       string
+	PrivateKey        string
+	PublicKey         string
 }
 
 var envCfg envConfig
@@ -40,6 +42,8 @@ func LoadConfig() {
 		MySQLUsername:     os.Getenv("MYSQL_USERNAME"),
 		MySQLPassword:     os.Getenv("MYSQL_PASSWORD"),
 		MySQLDBName:       os.Getenv("MYSQL_DB_NAME"),
+		PrivateKey:        os.Getenv("PRIVATE_KEY"),
+		PublicKey:         os.Getenv("PUBLIC_KEY"),
 	}
 }
 
