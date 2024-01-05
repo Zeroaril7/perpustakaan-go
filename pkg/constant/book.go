@@ -4,4 +4,5 @@ const (
 	Institute          = "FAKHRIL"
 	AvailableStatus    = "AVAILABLE"
 	NotAvailableStatus = "NOT AVAILABLE"
+	Loan               = "LOAN"
 )

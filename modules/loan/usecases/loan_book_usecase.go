@@ -3,24 +3,24 @@ package usecases
 import (
 	"context"
 
-	"github.com/Zeroaril7/perpustakaan-go/modules/book/domain"
-	"github.com/Zeroaril7/perpustakaan-go/modules/book/models"
+	"github.com/Zeroaril7/perpustakaan-go/modules/loan/domain"
+	"github.com/Zeroaril7/perpustakaan-go/modules/loan/models"
 	"github.com/Zeroaril7/perpustakaan-go/pkg/httperror"
 	"github.com/Zeroaril7/perpustakaan-go/pkg/utils"
 )
 
-type bookUsecase struct {
-	bookRepository domain.BookRepository
+type loanBookUsecase struct {
+	loanBookRepository domain.LoanBookRepository
 }
 
-// Add implements domain.BookUsecase.
-func (u *bookUsecase) Add(ctx context.Context, data models.Book) <-chan utils.Result {
+// Add implements domain.LoanBookUsecase.
+func (u *loanBookUsecase) Add(ctx context.Context, data models.LoanBook) <-chan utils.Result {
 	output := make(chan utils.Result)
 
 	go func() {
 		defer close(output)
 
-		result, err := u.bookRepository.Add(ctx, data)
+		result, err := u.loanBookRepository.Add(ctx, data)
 
 		if err != nil {
 			output <- utils.Result{Error: httperror.InternalServerError(err.Error())}
@@ -33,14 +33,14 @@ func (u *bookUsecase) Add(ctx context.Context, data models.Book) <-chan utils.Re
 	return output
 }
 
-// Delete implements domain.BookUsecase.
-func (u *bookUsecase) Delete(ctx context.Context, book_id string) <-chan utils.Result {
+// Delete implements domain.LoanBookUsecase.
+func (u *loanBookUsecase) Delete(ctx context.Context, loan_id string) <-chan utils.Result {
 	output := make(chan utils.Result)
 
 	go func() {
 		defer close(output)
 
-		err := u.bookRepository.Delete(ctx, book_id)
+		err := u.loanBookRepository.Delete(ctx, loan_id)
 
 		if err != nil {
 			output <- utils.Result{Error: httperror.InternalServerError(err.Error())}
@@ -53,14 +53,14 @@ func (u *bookUsecase) Delete(ctx context.Context, book_id string) <-chan utils.R
 	return output
 }
 
-// Get implements domain.BookUsecase.
-func (u *bookUsecase) Get(ctx context.Context, filter models.BookFilter) <-chan utils.Result {
+// Get implements domain.LoanBookUsecase.
+func (u *loanBookUsecase) Get(ctx context.Context, filter models.LoanBookFilter) <-chan utils.Result {
 	output := make(chan utils.Result)
 
 	go func() {
 		defer close(output)
 
-		result, total, err := u.bookRepository.Get(ctx, filter)
+		result, total, err := u.loanBookRepository.Get(ctx, filter)
 
 		if err != nil {
 			output <- utils.Result{Error: httperror.InternalServerError(err.Error())}
@@ -73,14 +73,14 @@ func (u *bookUsecase) Get(ctx context.Context, filter models.BookFilter) <-chan 
 	return output
 }
 
-// GetLast implements domain.BookUsecase.
-func (u *bookUsecase) GetLast(ctx context.Context, genre string) <-chan utils.Result {
+// GetByLoanID implements domain.LoanBookUsecase.
+func (u *loanBookUsecase) GetByLoanID(ctx context.Context, loan_id string) <-chan utils.Result {
 	output := make(chan utils.Result)
 
 	go func() {
 		defer close(output)
 
-		result, err := u.bookRepository.GetLast(ctx, genre)
+		result, err := u.loanBookRepository.GetByLoanID(ctx, loan_id)
 
 		if err != nil {
 			output <- utils.Result{Error: httperror.InternalServerError(err.Error())}
@@ -93,14 +93,14 @@ func (u *bookUsecase) GetLast(ctx context.Context, genre string) <-chan utils.Re
 	return output
 }
 
-// GetByBookID implements domain.BookUsecase.
-func (u *bookUsecase) GetByBookID(ctx context.Context, book_id string) <-chan utils.Result {
+// GetLast implements domain.LoanBookUsecase.
+func (u *loanBookUsecase) GetLast(ctx context.Context, user string) <-chan utils.Result {
 	output := make(chan utils.Result)
 
 	go func() {
 		defer close(output)
 
-		result, err := u.bookRepository.GetByBookID(ctx, book_id)
+		result, err := u.loanBookRepository.GetLast(ctx, user)
 
 		if err != nil {
 			output <- utils.Result{Error: httperror.InternalServerError(err.Error())}
@@ -113,14 +113,14 @@ func (u *bookUsecase) GetByBookID(ctx context.Context, book_id string) <-chan ut
 	return output
 }
 
-// Update implements domain.BookUsecase.
-func (u *bookUsecase) Update(ctx context.Context, data models.Book) <-chan utils.Result {
+// Update implements domain.LoanBookUsecase.
+func (u *loanBookUsecase) Update(ctx context.Context, data models.LoanBook) <-chan utils.Result {
 	output := make(chan utils.Result)
 
 	go func() {
 		defer close(output)
 
-		result, err := u.bookRepository.Update(ctx, data)
+		result, err := u.loanBookRepository.Update(ctx, data)
 
 		if err != nil {
 			output <- utils.Result{Error: httperror.InternalServerError(err.Error())}
@@ -133,6 +133,6 @@ func (u *bookUsecase) Update(ctx context.Context, data models.Book) <-chan utils
 	return output
 }
 
-func NewBookUsecase(bookRepository domain.BookRepository) domain.BookUsecase {
-	return &bookUsecase{bookRepository: bookRepository}
+func NewLoanBookUsecase(loanBokRepository domain.LoanBookRepository) domain.LoanBookUsecase {
+	return &loanBookUsecase{loanBookRepository: loanBokRepository}
 }

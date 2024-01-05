@@ -15,7 +15,7 @@ import (
 type BookHandler interface {
 	Add(c echo.Context) error
 	Get(c echo.Context) error
-	GetByRegisterID(c echo.Context) error
+	GetByBookID(c echo.Context) error
 	Delete(c echo.Context) error
 	Update(c echo.Context) error
 }
@@ -30,11 +30,11 @@ func NewBookHandler(e *echo.Echo, bookUsecase domain.BookUsecase) BookHandler {
 	}
 
 	group := e.Group("/book")
-	group.DELETE("/:register_id", handler.Delete, middlewares.VerifyBasicAuth(config.Config().BasicAuthUsername, config.Config().BasicAuthPassword))
+	group.DELETE("/:book_id", handler.Delete, middlewares.VerifyBasicAuth(config.Config().BasicAuthUsername, config.Config().BasicAuthPassword))
 	group.GET("", handler.Get)
-	group.GET("/:register_id", handler.GetByRegisterID)
+	group.GET("/:book_id", handler.GetByBookID)
 	group.POST("", handler.Add, middlewares.VerifyBasicAuth(config.Config().BasicAuthUsername, config.Config().BasicAuthPassword))
-	group.PUT("/:register_id", handler.Update, middlewares.VerifyBasicAuth(config.Config().BasicAuthUsername, config.Config().BasicAuthPassword))
+	group.PUT("/:book_id", handler.Update, middlewares.VerifyBasicAuth(config.Config().BasicAuthUsername, config.Config().BasicAuthPassword))
 	return handler
 }
 
@@ -99,11 +99,11 @@ func (h *bookHandler) Get(c echo.Context) error {
 	return utils.ResponseWithPagination(result.Data, "Get book success", http.StatusOK, result.Total, filter.GetPaginationRequest(), c)
 }
 
-// GetByRegisterID implements BookHandler.
-func (h *bookHandler) GetByRegisterID(c echo.Context) error {
-	registerId := utils.ConvertString(c.Param("register_id"))
+// GetByBookID implements BookHandler.
+func (h *bookHandler) GetByBookID(c echo.Context) error {
+	bookID := utils.ConvertString(c.Param("book_id"))
 
-	result := <-h.bookUsecase.GetByRegisterID(c.Request().Context(), registerId)
+	result := <-h.bookUsecase.GetByBookID(c.Request().Context(), bookID)
 
 	if result.Error != nil {
 		return utils.ResponseError(result.Error, c)
@@ -114,9 +114,9 @@ func (h *bookHandler) GetByRegisterID(c echo.Context) error {
 
 // Update implements BookHandler.
 func (h *bookHandler) Update(c echo.Context) error {
-	registerId := utils.ConvertString(c.Param("register_id"))
+	bookID := utils.ConvertString(c.Param("book_id"))
 
-	result := <-h.bookUsecase.GetByRegisterID(c.Request().Context(), registerId)
+	result := <-h.bookUsecase.GetByBookID(c.Request().Context(), bookID)
 
 	if result.Error != nil {
 		return utils.ResponseError(result.Error, c)
