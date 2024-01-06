@@ -5,7 +5,7 @@ type LoanBook struct {
 	LoanID        string `json:"loan_id"`
 	BookID        string `json:"book_id"`
 	Title         string `json:"title"`
-	User          string `json:"user"`
+	Username      string `json:"username"`
 	LoanStartDate string `json:"loan_start_date"`
 	LoanEndDate   string `json:"loan_end_date"`
 	Status        string `json:"status"`

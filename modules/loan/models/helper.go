@@ -11,11 +11,10 @@ import (
 func (m *LoanBookAdd) ToLoanBook(e LoanBook) LoanBook {
 	e.LoanID = generateLoanID(e)
 	e.BookID = m.BookID
-	e.Title = m.Title
 	e.LoanStartDate = m.LoanStartDate
 	e.LoanEndDate = m.LoanEndDate
-	e.User = m.User
-	e.Status = constant.LoanBorrowedStatus
+	e.Username = m.Username
+	e.Status = m.Status
 
 	return e
 }
@@ -27,13 +26,13 @@ func generateLoanID(data LoanBook) string {
 
 	if data.LoanID == "" {
 		number = utils.GetFourDigitsNumber("1")
-		loanID = fmt.Sprintf("%s-%s-%v", constant.Loan, data.User, number)
+		loanID = fmt.Sprintf("%s-%s-%v", constant.Loan, data.Username, number)
 	} else {
 		lastBookData := strings.Split(data.LoanID, "-")
 
-		lastNumber := utils.ConvertInt(lastBookData[1]) + 1
+		lastNumber := utils.ConvertInt(lastBookData[2]) + 1
 		number = utils.GetFourDigitsNumber(utils.ConvertString(lastNumber))
-		loanID = fmt.Sprintf("%s-%s-%v", constant.Loan, data.User, number)
+		loanID = fmt.Sprintf("%s-%s-%v", constant.Loan, data.Username, number)
 	}
 
 	return loanID

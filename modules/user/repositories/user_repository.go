@@ -20,7 +20,7 @@ func (r *userRepository) Add(ctx context.Context, data models.User) (result mode
 
 // Delete implements domain.UserRepository.
 func (r *userRepository) Delete(ctx context.Context, username string) error {
-	return r.db.WithContext(ctx).Delete(&models.User{}).Where("username = ?", username).Error
+	return r.db.WithContext(ctx).Where("username = ?", username).Delete(&models.User{}).Error
 }
 
 // Get implements domain.UserRepository.
