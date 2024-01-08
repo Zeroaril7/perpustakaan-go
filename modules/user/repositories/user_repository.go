@@ -45,7 +45,7 @@ func (r *userRepository) Get(ctx context.Context, filter models.UserFilter) (res
 
 // GetByUsername implements domain.UserRepository.
 func (r *userRepository) GetByUsername(ctx context.Context, username string) (result models.User, err error) {
-	err = r.db.WithContext(ctx).Where("username = ?", username).Find(&result).Error
+	err = r.db.WithContext(ctx).Where("username = ?", username).First(&result).Error
 	return
 }
 

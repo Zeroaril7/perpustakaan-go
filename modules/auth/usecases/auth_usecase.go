@@ -44,7 +44,7 @@ func (u *authUsecase) AuthWithPassword(ctx context.Context, authReq models.Login
 			return
 		}
 
-		if !utils.CheckPasswordHash(authReq.Password, user.Password) {
+		if !u.verifyPassword(authReq.Password, user.Password) {
 			output <- utils.Result{Error: httperror.NewUnauthorized(httperror.InvalidLoginMsg)}
 			return
 		}

@@ -9,7 +9,7 @@ import (
 )
 
 func (m *BookAdd) ToBook(e Book) Book {
-	e.RegisterID = generateReqisterID(e)
+	e.BookID = generateBookID(e)
 	e.Title = m.Title
 	e.Author = m.Author
 	e.Genre = m.Genre
@@ -21,21 +21,21 @@ func (m *BookAdd) ToBook(e Book) Book {
 	return e
 }
 
-func generateReqisterID(data Book) string {
+func generateBookID(data Book) string {
 
-	var registerID string
+	var bookID string
 	var number string
 
-	if data.RegisterID == "" {
+	if data.BookID == "" {
 		number = utils.GetFourDigitsNumber("1")
-		registerID = fmt.Sprintf("%s-%s-%v", constant.Institute, data.Genre, number)
+		bookID = fmt.Sprintf("%s-%s-%v", constant.Institute, data.Genre, number)
 	} else {
-		lastRegisterData := strings.Split(data.RegisterID, "-")
+		lastBookData := strings.Split(data.BookID, "-")
 
-		lastNumber := utils.ConvertInt(lastRegisterData[1]) + 1
+		lastNumber := utils.ConvertInt(lastBookData[2]) + 1
 		number = utils.GetFourDigitsNumber(utils.ConvertString(lastNumber))
-		registerID = fmt.Sprintf("%s-%s-%v", constant.Institute, lastRegisterData[0], number)
+		bookID = fmt.Sprintf("%s-%s-%v", constant.Institute, lastBookData[1], number)
 	}
 
-	return registerID
+	return bookID
 }

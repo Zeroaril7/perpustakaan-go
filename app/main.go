@@ -15,6 +15,10 @@ import (
 	bookHandler "github.com/Zeroaril7/perpustakaan-go/modules/book/handlers"
 	bookRepository "github.com/Zeroaril7/perpustakaan-go/modules/book/repositories"
 	bookUsecase "github.com/Zeroaril7/perpustakaan-go/modules/book/usecases"
+	loanBookDomain "github.com/Zeroaril7/perpustakaan-go/modules/loan/domain"
+	loanBookHandler "github.com/Zeroaril7/perpustakaan-go/modules/loan/handlers"
+	loanBookRepository "github.com/Zeroaril7/perpustakaan-go/modules/loan/repositories"
+	loanBookUsecase "github.com/Zeroaril7/perpustakaan-go/modules/loan/usecases"
 	userDomain "github.com/Zeroaril7/perpustakaan-go/modules/user/domain"
 	userHandler "github.com/Zeroaril7/perpustakaan-go/modules/user/handlers"
 	userRepository "github.com/Zeroaril7/perpustakaan-go/modules/user/repositories"
@@ -27,14 +31,16 @@ import (
 )
 
 type repositories struct {
-	bookRepository bookDomain.BookRepository
-	userRepository userDomain.UserRepository
+	bookRepository    bookDomain.BookRepository
+	userRepository    userDomain.UserRepository
+	loanBokRepository loanBookDomain.LoanBookRepository
 }
 
 type usecase struct {
-	bookUsecase bookDomain.BookUsecase
-	userUsecase userDomain.UserUsecase
-	authUsecase authDomain.AuthUsecase
+	bookUsecase     bookDomain.BookUsecase
+	userUsecase     userDomain.UserUsecase
+	authUsecase     authDomain.AuthUsecase
+	loanBookUsecase loanBookDomain.LoanBookUsecase
 }
 
 type packages struct {
@@ -48,13 +54,14 @@ func setPackages() {
 	// repository
 	pkg.repositories.bookRepository = bookRepository.NewBookRepository(mysqlgorm.DBConnect.Connection)
 	pkg.repositories.userRepository = userRepository.NewUserRepository(mysqlgorm.DBConnect.Connection)
+	pkg.repositories.loanBokRepository = loanBookRepository.NewLoanBookRepository(mysqlgorm.DBConnect.Connection)
 
 	// usecase
 	pkg.usecase.bookUsecase = bookUsecase.NewBookUsecase(pkg.repositories.bookRepository)
 	pkg.usecase.userUsecase = userUsecase.NewUserUsecase(pkg.repositories.userRepository)
-
-	// auth
 	pkg.usecase.authUsecase = authUsecase.NewAuthUsecase(pkg.repositories.userRepository)
+	pkg.usecase.loanBookUsecase = loanBookUsecase.NewLoanBookUsecase(pkg.repositories.loanBokRepository, pkg.repositories.bookRepository)
+
 }
 
 func setHttp(e *echo.Echo) {
@@ -71,6 +78,9 @@ func setHttp(e *echo.Echo) {
 
 	// Auth
 	authHandler.NewAuthHandler(e, pkg.usecase.authUsecase)
+
+	// Loan
+	loanBookHandler.NewLoanBookHandler(e, pkg.usecase.loanBookUsecase)
 
 }
 

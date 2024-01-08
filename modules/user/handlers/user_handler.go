@@ -51,6 +51,9 @@ func (h *userHandler) Add(c echo.Context) error {
 		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
 	}
 
+	password := utils.HashPassword(data.Password)
+	data.Password = password
+
 	expend := models.User{}
 	expend = data.ToUser(expend)
 
@@ -123,7 +126,7 @@ func (h *userHandler) Update(c echo.Context) error {
 	expend := result.Data.(models.User)
 
 	if expend == (models.User{}) {
-		return utils.ResponseError(httperror.NotFound("User not found"), c)
+		return utils.ResponseError(httperror.NotFound(httperror.NotFoundErrorMessage), c)
 	}
 
 	data := new(models.UserAdd)
@@ -133,6 +136,11 @@ func (h *userHandler) Update(c echo.Context) error {
 
 	if err := c.Validate(data); err != nil {
 		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
+	}
+
+	if !utils.CheckPasswordHash(data.Password, expend.Password) {
+		newPassword := utils.HashPassword(data.Password)
+		data.Password = newPassword
 	}
 
 	expend = data.ToUser(expend)
