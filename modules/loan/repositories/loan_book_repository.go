@@ -51,12 +51,7 @@ func (r *loanBookRepository) GetByLoanID(ctx context.Context, loan_id string) (r
 
 // GetLast implements domain.LoanBookRepository.
 func (r *loanBookRepository) GetLast(ctx context.Context, username string) (result models.LoanBook, err error) {
-	db := r.db.WithContext(ctx)
-
-	if err = db.Select("loan_id", "username").Last(&result, "username = ?", username).Error; err != nil {
-		return result, nil
-	}
-
+	err = r.db.WithContext(ctx).Select("loan_id", "username").Last(&result, "username = ?", username).Error
 	return
 }
 

@@ -25,12 +25,7 @@ func (r *bookRepository) Delete(ctx context.Context, book_id string) error {
 
 // GetLast implements domain.BookRepository.
 func (r *bookRepository) GetLast(ctx context.Context, genre string) (result models.Book, err error) {
-	db := r.db.WithContext(ctx)
-
-	if err = db.Select("book_id").Last(&result, "genre = ?", genre).Error; err != nil {
-		return result, nil
-	}
-
+	err = r.db.WithContext(ctx).Select("book_id").Last(&result, "genre = ?", genre).Error
 	return
 }
 

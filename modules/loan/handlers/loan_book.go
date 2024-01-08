@@ -52,6 +52,10 @@ func (h *loanBookHandler) Add(c echo.Context) error {
 
 	result := <-h.loanBookUsecase.GetLast(c.Request().Context(), data.Username)
 
+	if result.Error != nil {
+		return utils.ResponseError(result.Error, c)
+	}
+
 	expend := result.Data.(models.LoanBook)
 
 	if expend == (models.LoanBook{}) {

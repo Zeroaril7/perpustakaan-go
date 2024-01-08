@@ -52,6 +52,10 @@ func (h *bookHandler) Add(c echo.Context) error {
 
 	result := <-h.bookUsecase.GetLast(c.Request().Context(), data.Genre)
 
+	if result.Error != nil {
+		return utils.ResponseError(result.Error, c)
+	}
+
 	expend := result.Data.(models.Book)
 
 	if expend == (models.Book{}) {

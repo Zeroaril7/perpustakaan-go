@@ -3,7 +3,6 @@ package tests
 import (
 	"database/sql"
 	"database/sql/driver"
-	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -17,7 +16,6 @@ import (
 	"github.com/Zeroaril7/perpustakaan-go/modules/auth/usecases"
 	userDomain "github.com/Zeroaril7/perpustakaan-go/modules/user/domain"
 	userRepo "github.com/Zeroaril7/perpustakaan-go/modules/user/repositories"
-	"github.com/Zeroaril7/perpustakaan-go/pkg/httperror"
 	"github.com/Zeroaril7/perpustakaan-go/pkg/utils"
 	"github.com/Zeroaril7/perpustakaan-go/pkg/validator"
 	"github.com/labstack/echo/v4"
@@ -27,14 +25,17 @@ import (
 )
 
 var (
-	authEndpoint            = "/auth"
-	loginEndpoint           = "/login"
-	authBodyFilePath        = "test_data/auth_body_login.json"
-	invalidAuthBodyFilePath = "test_data/auth_body_login_invalid.json"
-	privateKeyPath          = "test_data/private.pem"
-	publicKeyPath           = "test_data/public.pem"
-	userRows                = []string{"username", "password", "role"}
-	userResult              = []driver.Value{"test", utils.HashPassword("test"), "ADMIN"}
+	authEndpoint                    = "/auth"
+	loginEndpoint                   = "/login"
+	invalidUserAuthBodyFilePath     = "test_data/auth_invalid_username_login_body_req.json"
+	invalidPasswordAuthBodyFilePath = "test_data/auth_invalid_password_login_body_req.json"
+	authBodyFilePath                = "test_data/auth_login_body_req.json"
+	authBodyInvalidFilePath         = "test_data/auth_login_body_invalid_req.json"
+	authBodyEmptyFilePath           = "test_data/auth_login_body_empty_req.json"
+	privateKeyPath                  = "test_data/private.pem"
+	publicKeyPath                   = "test_data/public.pem"
+	userRows                        = []string{"username", "password", "role"}
+	userResult                      = []driver.Value{"test", utils.HashPassword("test"), "ADMIN"}
 )
 
 type Suite struct {
@@ -82,31 +83,50 @@ func (s *Suite) TearDownSuite() {
 
 func (s *Suite) TestLogin() {
 	var tests = []struct {
-		name           string
-		bindErr        error
-		sqlErr         error
-		expectedStatus int
+		name            string
+		bindErr         bool
+		validatorErr    bool
+		authUsernameErr bool
+		authPasswordErr bool
+		jwtErr          bool
+		sqlErr          error
+		expectedStatus  int
 	}{
 		{name: "success", expectedStatus: http.StatusOK},
 		{name: "success", expectedStatus: http.StatusOK},
 		{name: "sql error", sqlErr: sql.ErrNoRows, expectedStatus: http.StatusInternalServerError},
-		{name: "sql error", sqlErr: sql.ErrNoRows, expectedStatus: http.StatusInternalServerError},
-		{name: "bind error", bindErr: errors.New(httperror.BindErrorMessage), expectedStatus: http.StatusBadRequest},
+		{name: "sql error", sqlErr: gorm.ErrRecordNotFound, expectedStatus: http.StatusUnauthorized},
+		{name: "bind error", bindErr: true, expectedStatus: http.StatusBadRequest},
+		{name: "validator error", validatorErr: true, expectedStatus: http.StatusBadRequest},
+		{name: "auth username error", authUsernameErr: true, expectedStatus: http.StatusUnauthorized},
+		{name: "auth password error", authPasswordErr: true, expectedStatus: http.StatusUnauthorized},
+		{name: "jwt error", jwtErr: true, expectedStatus: http.StatusInternalServerError},
 	}
 
-	privateKeyFile, _ := os.Open(privateKeyPath)
-	privateKey, _ := io.ReadAll(privateKeyFile)
-
-	publicKeyFile, _ := os.Open(publicKeyPath)
-	publicKey, _ := io.ReadAll(publicKeyFile)
-
-	config.Config().PrivateKey = string(privateKey)
-	config.Config().PublicKey = string(publicKey)
-
 	for _, tt := range tests {
+		if !tt.jwtErr {
+			privateKeyFile, _ := os.Open(privateKeyPath)
+			privateKey, _ := io.ReadAll(privateKeyFile)
+
+			publicKeyFile, _ := os.Open(publicKeyPath)
+			publicKey, _ := io.ReadAll(publicKeyFile)
+
+			config.Config().PrivateKey = string(privateKey)
+			config.Config().PublicKey = string(publicKey)
+		} else {
+			config.Config().PrivateKey = ""
+			config.Config().PublicKey = ""
+		}
+
 		var bodyFilepath string
-		if tt.bindErr != nil {
-			bodyFilepath = invalidAuthBodyFilePath
+		if tt.bindErr {
+			bodyFilepath = authBodyInvalidFilePath
+		} else if tt.validatorErr {
+			bodyFilepath = authBodyEmptyFilePath
+		} else if tt.authUsernameErr {
+			bodyFilepath = invalidUserAuthBodyFilePath
+		} else if tt.authPasswordErr {
+			bodyFilepath = invalidPasswordAuthBodyFilePath
 		} else {
 			bodyFilepath = authBodyFilePath
 		}
@@ -122,9 +142,9 @@ func (s *Suite) TestLogin() {
 
 		c.SetPath(authEndpoint + loginEndpoint)
 
-		if tt.sqlErr != nil && tt.bindErr == nil {
+		if tt.sqlErr != nil && !tt.bindErr && !tt.validatorErr && !tt.authPasswordErr && !tt.authUsernameErr && !tt.jwtErr {
 			s.mock.ExpectQuery("").WithArgs().WillReturnError(tt.sqlErr)
-		} else if tt.bindErr == nil {
+		} else if !tt.bindErr && !tt.validatorErr {
 			s.mock.ExpectQuery("").WithArgs().WillReturnRows(sqlmock.NewRows(userRows).AddRow(userResult...))
 		}
 
