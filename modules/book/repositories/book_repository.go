@@ -19,24 +19,19 @@ func (r *bookRepository) Add(ctx context.Context, data models.Book) (result mode
 }
 
 // Delete implements domain.BookRepository.
-func (r *bookRepository) Delete(ctx context.Context, register_id string) error {
-	return r.db.WithContext(ctx).Delete(&models.Book{}).Where("register_id = ?", register_id).Error
+func (r *bookRepository) Delete(ctx context.Context, book_id string) error {
+	return r.db.WithContext(ctx).Where("book_id = ?", book_id).Delete(&models.Book{}).Error
 }
 
 // GetLast implements domain.BookRepository.
 func (r *bookRepository) GetLast(ctx context.Context, genre string) (result models.Book, err error) {
-	db := r.db.WithContext(ctx)
-
-	if err = db.Select("register_id").Last(&result, "genre = ?", genre).Error; err != nil {
-		return result, nil
-	}
-
+	err = r.db.WithContext(ctx).Select("book_id").Last(&result, "genre = ?", genre).Error
 	return
 }
 
-// GetByRegisterID implements domain.BookRepository.
-func (r *bookRepository) GetByRegisterID(ctx context.Context, register_id string) (result models.Book, err error) {
-	err = r.db.WithContext(ctx).Find(&result).Where("register_id = ?", register_id).Error
+// GetByBookID implements domain.BookRepository.
+func (r *bookRepository) GetByBookID(ctx context.Context, book_id string) (result models.Book, err error) {
+	err = r.db.WithContext(ctx).Where("book_id = ?", book_id).First(&result).Error
 	return
 }
 

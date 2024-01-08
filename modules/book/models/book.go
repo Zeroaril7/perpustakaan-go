@@ -2,7 +2,7 @@ package models
 
 type Book struct {
 	ID              int64  `json:"id" gorm:"primaryKey"`
-	RegisterID      string `json:"reqister_id"`
+	BookID          string `json:"book_id"`
 	Title           string `json:"title"`
 	Genre           string `json:"genre"`
 	Author          string `json:"author"`
