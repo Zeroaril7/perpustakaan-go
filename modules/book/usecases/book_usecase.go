@@ -34,13 +34,13 @@ func (u *bookUsecase) Add(ctx context.Context, data models.Book) <-chan utils.Re
 }
 
 // Delete implements domain.BookUsecase.
-func (u *bookUsecase) Delete(ctx context.Context, register_id string) <-chan utils.Result {
+func (u *bookUsecase) Delete(ctx context.Context, book_id string) <-chan utils.Result {
 	output := make(chan utils.Result)
 
 	go func() {
 		defer close(output)
 
-		err := u.bookRepository.Delete(ctx, register_id)
+		err := u.bookRepository.Delete(ctx, book_id)
 
 		if err != nil {
 			output <- utils.Result{Error: httperror.InternalServerError(err.Error())}
@@ -93,14 +93,14 @@ func (u *bookUsecase) GetLast(ctx context.Context, genre string) <-chan utils.Re
 	return output
 }
 
-// GetByRegisterID implements domain.BookUsecase.
-func (u *bookUsecase) GetByRegisterID(ctx context.Context, register_id string) <-chan utils.Result {
+// GetByBookID implements domain.BookUsecase.
+func (u *bookUsecase) GetByBookID(ctx context.Context, book_id string) <-chan utils.Result {
 	output := make(chan utils.Result)
 
 	go func() {
 		defer close(output)
 
-		result, err := u.bookRepository.GetByRegisterID(ctx, register_id)
+		result, err := u.bookRepository.GetByBookID(ctx, book_id)
 
 		if err != nil {
 			output <- utils.Result{Error: httperror.InternalServerError(err.Error())}

@@ -6,4 +6,5 @@ type BookAdd struct {
 	Author          string `json:"author" validate:"required"`
 	Publisher       string `json:"publisher" validate:"required"`
 	PublicationYear string `json:"publication_year"`
+	Status			string `json:"status"`
 }

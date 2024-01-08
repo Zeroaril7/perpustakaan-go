@@ -44,12 +44,15 @@ func (h *userHandler) Add(c echo.Context) error {
 	data := new(models.UserAdd)
 
 	if err := c.Bind(data); err != nil {
-		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
+		return utils.ResponseError(httperror.BadRequest(httperror.BindErrorMessage), c)
 	}
 
 	if err := c.Validate(data); err != nil {
 		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
 	}
+
+	password := utils.HashPassword(data.Password)
+	data.Password = password
 
 	expend := models.User{}
 	expend = data.ToUser(expend)
@@ -81,7 +84,11 @@ func (h *userHandler) Get(c echo.Context) error {
 	filter := new(models.UserFilter)
 
 	if err := c.Bind(filter); err != nil {
-		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
+		return utils.ResponseError(httperror.BadRequest(httperror.BindErrorMessage), c)
+	}
+
+	if !filter.DisablePagination {
+		filter.SetDefault()
 	}
 
 	result := <-h.userUsecase.Get(c.Request().Context(), *filter)
@@ -96,10 +103,6 @@ func (h *userHandler) Get(c echo.Context) error {
 // GetByUsername implements UserHandler.
 func (h *userHandler) GetByUsername(c echo.Context) error {
 	username := utils.ConvertString(c.Param("username"))
-
-	if err := c.Bind(username); err != nil {
-		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
-	}
 
 	result := <-h.userUsecase.GetByUsername(c.Request().Context(), username)
 
@@ -123,16 +126,21 @@ func (h *userHandler) Update(c echo.Context) error {
 	expend := result.Data.(models.User)
 
 	if expend == (models.User{}) {
-		return utils.ResponseError(httperror.NotFound("User not found"), c)
+		return utils.ResponseError(httperror.NotFound(httperror.NotFoundErrorMessage), c)
 	}
 
 	data := new(models.UserAdd)
 	if err := c.Bind(data); err != nil {
-		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
+		return utils.ResponseError(httperror.BadRequest(httperror.BindErrorMessage), c)
 	}
 
 	if err := c.Validate(data); err != nil {
 		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
+	}
+
+	if !utils.CheckPasswordHash(data.Password, expend.Password) {
+		newPassword := utils.HashPassword(data.Password)
+		data.Password = newPassword
 	}
 
 	expend = data.ToUser(expend)

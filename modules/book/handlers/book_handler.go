@@ -7,6 +7,7 @@ import (
 	"github.com/Zeroaril7/perpustakaan-go/middlewares"
 	"github.com/Zeroaril7/perpustakaan-go/modules/book/domain"
 	"github.com/Zeroaril7/perpustakaan-go/modules/book/models"
+	"github.com/Zeroaril7/perpustakaan-go/pkg/constant"
 	"github.com/Zeroaril7/perpustakaan-go/pkg/httperror"
 	"github.com/Zeroaril7/perpustakaan-go/pkg/utils"
 	"github.com/labstack/echo/v4"
@@ -15,7 +16,7 @@ import (
 type BookHandler interface {
 	Add(c echo.Context) error
 	Get(c echo.Context) error
-	GetByRegisterID(c echo.Context) error
+	GetByBookID(c echo.Context) error
 	Delete(c echo.Context) error
 	Update(c echo.Context) error
 }
@@ -30,11 +31,11 @@ func NewBookHandler(e *echo.Echo, bookUsecase domain.BookUsecase) BookHandler {
 	}
 
 	group := e.Group("/book")
-	group.DELETE("/:register_id", handler.Delete, middlewares.VerifyBasicAuth(config.Config().BasicAuthUsername, config.Config().BasicAuthPassword))
+	group.DELETE("/:book-id", handler.Delete, middlewares.VerifyBasicAuth(config.Config().BasicAuthUsername, config.Config().BasicAuthPassword))
 	group.GET("", handler.Get)
-	group.GET("/:register_id", handler.GetByRegisterID)
+	group.GET("/:book-id", handler.GetByBookID)
 	group.POST("", handler.Add, middlewares.VerifyBasicAuth(config.Config().BasicAuthUsername, config.Config().BasicAuthPassword))
-	group.PUT("/:register_id", handler.Update, middlewares.VerifyBasicAuth(config.Config().BasicAuthUsername, config.Config().BasicAuthPassword))
+	group.PUT("/:book-id", handler.Update, middlewares.VerifyBasicAuth(config.Config().BasicAuthUsername, config.Config().BasicAuthPassword))
 	return handler
 }
 
@@ -42,7 +43,7 @@ func (h *bookHandler) Add(c echo.Context) error {
 	data := new(models.BookAdd)
 
 	if err := c.Bind(data); err != nil {
-		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
+		return utils.ResponseError(httperror.BadRequest(httperror.BindErrorMessage), c)
 	}
 
 	if err := c.Validate(data); err != nil {
@@ -50,6 +51,10 @@ func (h *bookHandler) Add(c echo.Context) error {
 	}
 
 	result := <-h.bookUsecase.GetLast(c.Request().Context(), data.Genre)
+
+	if result.Error != nil {
+		return utils.ResponseError(result.Error, c)
+	}
 
 	expend := result.Data.(models.Book)
 
@@ -68,9 +73,15 @@ func (h *bookHandler) Add(c echo.Context) error {
 
 // Delete implements BookHandler.
 func (h *bookHandler) Delete(c echo.Context) error {
-	registerId := utils.ConvertString(c.Param("register_id"))
+	bookID := utils.ConvertString(c.Param("book-id"))
 
-	result := <-h.bookUsecase.Delete(c.Request().Context(), registerId)
+	role := c.Get("role").(string)
+
+	if role != constant.Admin && role != constant.SuperAdmin {
+		return utils.ResponseError(httperror.Unauthorized(httperror.UnauthorizedErrorMessage), c)
+	}
+
+	result := <-h.bookUsecase.Delete(c.Request().Context(), bookID)
 
 	if result.Error != nil {
 		return utils.ResponseError(result.Error, c)
@@ -83,7 +94,7 @@ func (h *bookHandler) Get(c echo.Context) error {
 	filter := new(models.BookFilter)
 
 	if err := c.Bind(filter); err != nil {
-		return utils.ResponseError(httperror.BadRequest(err.Error()), c)
+		return utils.ResponseError(httperror.BadRequest(httperror.BindErrorMessage), c)
 	}
 
 	if !filter.DisablePagination {
@@ -99,11 +110,11 @@ func (h *bookHandler) Get(c echo.Context) error {
 	return utils.ResponseWithPagination(result.Data, "Get book success", http.StatusOK, result.Total, filter.GetPaginationRequest(), c)
 }
 
-// GetByRegisterID implements BookHandler.
-func (h *bookHandler) GetByRegisterID(c echo.Context) error {
-	registerId := utils.ConvertString(c.Param("register_id"))
+// GetByBookID implements BookHandler.
+func (h *bookHandler) GetByBookID(c echo.Context) error {
+	bookID := utils.ConvertString(c.Param("book-id"))
 
-	result := <-h.bookUsecase.GetByRegisterID(c.Request().Context(), registerId)
+	result := <-h.bookUsecase.GetByBookID(c.Request().Context(), bookID)
 
 	if result.Error != nil {
 		return utils.ResponseError(result.Error, c)
@@ -114,9 +125,9 @@ func (h *bookHandler) GetByRegisterID(c echo.Context) error {
 
 // Update implements BookHandler.
 func (h *bookHandler) Update(c echo.Context) error {
-	registerId := utils.ConvertString(c.Param("register_id"))
+	bookID := utils.ConvertString(c.Param("book-id"))
 
-	result := <-h.bookUsecase.GetByRegisterID(c.Request().Context(), registerId)
+	result := <-h.bookUsecase.GetByBookID(c.Request().Context(), bookID)
 
 	if result.Error != nil {
 		return utils.ResponseError(result.Error, c)
@@ -124,13 +135,13 @@ func (h *bookHandler) Update(c echo.Context) error {
 
 	expend := result.Data.(models.Book)
 	if expend == (models.Book{}) {
-		return utils.ResponseError(httperror.NotFound("Book not found"), c)
+		return utils.ResponseError(httperror.NotFound(httperror.NotFoundErrorMessage), c)
 	}
 
 	data := new(models.BookAdd)
 
 	if err := c.Bind(data); err != nil {
-		utils.ResponseError(httperror.BadRequest(err.Error()), c)
+		utils.ResponseError(httperror.BadRequest(httperror.BindErrorMessage), c)
 	}
 
 	if err := c.Validate(data); err != nil {
