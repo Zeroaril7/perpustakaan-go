@@ -24,6 +24,8 @@ import (
 	userRepository "github.com/Zeroaril7/perpustakaan-go/modules/user/repositories"
 	userUsecase "github.com/Zeroaril7/perpustakaan-go/modules/user/usecases"
 	mysqlgorm "github.com/Zeroaril7/perpustakaan-go/pkg/databases"
+	"github.com/Zeroaril7/perpustakaan-go/pkg/helper"
+	baseRepository "github.com/Zeroaril7/perpustakaan-go/pkg/helper"
 	"github.com/Zeroaril7/perpustakaan-go/pkg/utils"
 	"github.com/Zeroaril7/perpustakaan-go/pkg/validator"
 	"github.com/labstack/echo/v4"
@@ -34,6 +36,7 @@ type repositories struct {
 	bookRepository    bookDomain.BookRepository
 	userRepository    userDomain.UserRepository
 	loanBokRepository loanBookDomain.LoanBookRepository
+	baseRepository    helper.BaseRepository
 }
 
 type usecase struct {
@@ -55,6 +58,7 @@ func setPackages() {
 	pkg.repositories.bookRepository = bookRepository.NewBookRepository(mysqlgorm.DBConnect.Connection)
 	pkg.repositories.userRepository = userRepository.NewUserRepository(mysqlgorm.DBConnect.Connection)
 	pkg.repositories.loanBokRepository = loanBookRepository.NewLoanBookRepository(mysqlgorm.DBConnect.Connection)
+	pkg.repositories.baseRepository = baseRepository.NewBaseRepository(mysqlgorm.DBConnect.Connection)
 
 	// usecase
 	pkg.usecase.bookUsecase = bookUsecase.NewBookUsecase(pkg.repositories.bookRepository)

@@ -1,9 +1,4 @@
-.idea/
 .vscode
-vendor
-__debug_bin.exe
-main
 .env
-coverages/index.html
-__debug_bin
+app/.env
 coverage-report.html
